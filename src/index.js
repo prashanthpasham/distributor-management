@@ -3,12 +3,22 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import * as serviceWorker from './serviceWorker';
 import Login from './components/login/Login';
-import {Provider} from 'react-redux';
-import {store} from './store';
+import Welcome from './components/welcome/Welcome';
+import CompanyInfo from './components/Company/CompanyInfo';
+import {HashRouter,Route} from 'react-router-dom';
+import Switch from 'react-bootstrap/esm/Switch';
+//import {createBrowserHistory} from 'history';
+//let history = createBrowserHistory();
 ReactDOM.render(
-  <Provider store={store}>
-    <Login />
-  </Provider>,
+    <HashRouter>
+    <Route exact path="/" component={Login}>
+     
+    </Route>
+
+    <Route path="/app" component={Welcome}  />
+    
+    </HashRouter>
+ ,
   document.getElementById('root')
 );
 
