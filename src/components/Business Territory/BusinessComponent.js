@@ -7,7 +7,7 @@ class BusinessComponent extends Component {
         this.state = {
             hierarchyList: [],
             hierarchy: {
-                'parentBusinessId': 0,
+                'parentLookupId': 0,
                 'masterLookupId': 0,
                 'businessName': ""
             },
@@ -29,18 +29,32 @@ class BusinessComponent extends Component {
 
     }
     openAddDialog(bt) {
-       
-        if (bt['parentId'] == 0 || this.state.hierarchy.parentBusinessId > 0) {
-            this.setState({hierarchy:{...this.state.hierarchy,'masterLookupId': bt['id'] },'dialog':"block" });
+       let flag=true;
+       let parentBusinessId=0;
+       if (bt['parentId'] >0){
+       this.state.hierarchyList.forEach(lookup=>{ 
+        if(lookup.id==bt.parentId){
+           if(lookup.selectedValue!=lookup.id+"@0"){
+            parentBusinessId=lookup.selectedValue.split("@")[1];
+              flag=true;
+           }else{
+               flag=false;
+
+           }
+        }
+       });
+    }
+        if (bt['parentId'] == 0 || flag) {
+            this.setState({hierarchy:{...this.state.hierarchy,'masterLookupId': bt['id'],'parentBusinessId':parentBusinessId },'dialog':"block" });
             
         } else {
-            alert("Please Select value in " + bt['parentName']);
+            alert("Please select any value in " + bt['parentName']);
         }
     }
     addData() {
        
         if (this.state.hierarchy.businessName.trim().length > 0) {
-
+            
             BusinessService.saveBusinessData(this.state.hierarchy).then(res => {
                 this.closeDialog();
                 alert(res);
@@ -50,19 +64,21 @@ class BusinessComponent extends Component {
         }
 
     }
-    onBsSelection(event) {
+    onBsSelection(event,obj) {
       let data=  event.target.value.split("@");
-           
+           obj['selectedValue']=event.target.value;
             let dataList=this.state.hierarchyList;
             dataList.forEach(lookup=>{
+               
                  if(lookup.id>eval( data[0])){
+                    lookup['selectedValue']=lookup.id+"@0";
                      lookup.items=[];
                  }
              });
           
-        this.setState({ 'hierarchyList':dataList, hierarchy: { ...this.state.hierarchy,'parentBusinessId': data[1] } }
+        this.setState({ 'hierarchyList':dataList}
         ,()=>{
-            BusinessService.selectedBTList(this.state.hierarchy.parentBusinessId).then(res => {
+            BusinessService.selectedBTList(data[1]).then(res => {
               
                 let data=JSON.parse(JSON.stringify(res));
                 let list=this.state.hierarchyList;
@@ -89,7 +105,7 @@ class BusinessComponent extends Component {
                 {this.state.hierarchyList.map(hr => {
                     return (<div className="col-md-3" style={{ display: 'inline-block' }}>
                         <label>{hr.name}</label>
-                        <select  className="form-control" value={hr.selectedvalue} onChange={this.onBsSelection}>
+                        <select  className="form-control" value={hr.selectedValue} onChange={(event)=>this.onBsSelection(event,hr)}>
                             {hr.items.map(item => { return (<option key={item.id} value={item.bsid}>{item.name}</option>) })}
                         </select>
                         <br/>
